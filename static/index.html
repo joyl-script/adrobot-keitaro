@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+  <title>Adrobot Keitaro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+    }
+
+    form {
+      border: 1px solid #ddd;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      margin: 8px 0 4px;
+    }
+
+    input {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 8px 16px;
+    }
+
+    pre {
+      background: #f5f5f5;
+      padding: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Создание кампании</h1>
+  <form id="create-form">
+    <label>Name</label>
+    <input name="name" value="campaign2">
+    <label>Geo</label>
+    <input name="geo" value="RU">
+    <label>Offer ID</label>
+    <input name="offer_id" type="number" value="123">
+    <label>Domain</label>
+    <input name="domain" value="example.com">
+    <label>Group</label>
+    <input name="group" value="test">
+    <label>Source</label>
+    <input name="source" value="test">
+    <button type="submit">Создать</button>
+  </form>
+
+  <h1>Редактор офферов</h1>
+  <form id="offers-form">
+    <label>Campaign ID</label>
+    <input name="campaign_id" type="number" value="1">
+    <label>Добавить офферы через запятую</label>
+    <input name="add" value="111,222">
+    <label>Удалить офферы через запятую</label>
+    <input name="remove" value="456">
+    <button type="submit">Изменить</button>
+  </form>
+
+  <pre id="result"></pre>
+
+  <script>
+    const result = document.getElementById("result");
+
+    function toNumbers(value) {
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map(Number);
+    }
+
+    document.getElementById("create-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const body = {
+        name: form.elements["name"].value,
+        geo: form.elements["geo"].value,
+        offer_id: Number(form.elements["offer_id"].value),
+        domain: form.elements["domain"].value,
+        group: form.elements["group"].value,
+        source: form.elements["source"].value,
+      };
+      const response = await fetch("/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      result.textContent = JSON.stringify(await response.json(), null, 2);
+    });
+
+    document.getElementById("offers-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const id = Number(form.elements["campaign_id"].value);
+      const body = {
+        add: toNumbers(form.elements["add"].value),
+        remove: toNumbers(form.elements["remove"].value),
+      };
+      const response = await fetch(`/campaigns/${id}/offers`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      result.textContent = JSON.stringify(await response.json(), null, 2);
+    });
+  </script>
+</body>
+
+</html>
